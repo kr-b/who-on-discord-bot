@@ -5,7 +5,6 @@
 import os
 import sys
 import json
-import signal
 import discord
 from datetime import datetime
 from dotenv import load_dotenv
@@ -36,13 +35,6 @@ def write_log(msg, log_type="info"):
 def activity_eq_overload(self, other):
     """Overload for discord.Activity '==' operator"""
     return self.name == other.name
-
-def exit_gracefully(signum, frame):
-    """Wait for bot to disconnect first when exitting"""
-    signal.signal(signal.SIGINT, original_sigint)
-    write_loge("Disconnecting...")
-    client.close()
-    sys.exit(0)
 
 def is_playing_new_game(before, after):
     """
@@ -155,7 +147,7 @@ async def on_member_update(before, after):
         output = "{0} is now playing {1}".format(after.display_name, new_game.name)
 
         # Get announcement channel
-        announce_chnl = next((x for x in after.guild.channels if x.name == "testing"), None)
+        announce_chnl = next((x for x in after.guild.channels if x.name == "announcements"), None)
         if announce_chnl is None:
             write_log("Couldn't find announcement channel!", log_type="error")
         else:
@@ -207,8 +199,10 @@ async def on_message(message):
 
 # -------------------- [ MAIN LOGIC ] ------------------- #
 if __name__ == "__main__":
-    original_sigint = signal.getsignal(signal.SIGINT)
-    signal.signal(signal.SIGINT, exit_gracefully)
     setattr(discord.Activity, "__eq__", activity_eq_overload)
-    client.run(TOKEN)
+    try:
+        client.run(TOKEN)
+    except KeyboardInterrupt:
+        write_log("Disconnecting...")
+        client.close()
 # ------------------------------------------------------- #
