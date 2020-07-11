@@ -135,6 +135,9 @@ async def on_ready():
 @client.event
 async def on_member_update(before, after):
 
+    # Ignore bots
+    if after.bot: return
+
     if len(after.activities) < 1:
         return
 
@@ -147,7 +150,7 @@ async def on_member_update(before, after):
         output = "{0} is now playing {1}".format(after.display_name, new_game.name)
 
         # Get announcement channel
-        announce_chnl = next((x for x in after.guild.channels if x.name == "announcements"), None)
+        announce_chnl = next((x for x in after.guild.channels if x.name == "testing"), None)
         if announce_chnl is None:
             write_log("Couldn't find announcement channel!", log_type="error")
         else:
